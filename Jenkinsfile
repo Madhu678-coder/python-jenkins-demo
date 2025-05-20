@@ -1,43 +1,59 @@
 pipeline {
     agent any
- 
+
     environment {
-        VENV = 'venv'
+        DOCKERHUB_USER = 'lithinvarma'
+        IMAGE_NAME = 'greet-app'
+        IMAGE_TAG = 'latest'
     }
- 
+
     stages {
-        stage ("Install") {
-            steps {
-                sh '''
-                    python3 -m venv $VENV
-                    . $VENV/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt wheel
-                '''
-            }
-        }
-        stage ("Lint") {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    echo "This is my Linting Step"
+                    sh '''
+                        docker build -t $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG .
+                    '''
                 }
             }
         }
-        stage ("Test") {
+
+        stage('Push Docker Image to Docker Hub') {
             steps {
-                sh '''
-                    . $VENV/bin/activate
-                    pytest --cov=app --junitxml=pytest-results.xml tests/
-                '''
-            }
-        }
-        stage ("Run Application") {
-            steps {
-                script {
-                    echo "This is my Run applcaition Step"
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
+                    '''
                 }
             }
         }
- 
+
+        stage('Lint') {
+            steps {
+                echo 'Linting...'
+                // Add linter command here if needed, e.g. flake8
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Run tests inside the built container
+                    sh '''
+                        docker run --rm $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG python -m unittest
+                    '''
+                }
+            }
+        }
+
+        stage('Run Application') {
+            steps {
+                echo 'Running the application...'
+                sh '''
+                    docker run --rm $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+        }
     }
 }
