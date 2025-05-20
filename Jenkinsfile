@@ -1,80 +1,36 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.9-slim'
-        }
-    }
+    agent any
 
     stages {
         stage('Environment Check') {
             steps {
                 sh 'which python3'
                 sh 'python3 --version'
-            }
-        }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Environment Check') {
-            steps {
-                sh 'which python || which python3'
-                sh 'python --version || python3 --version'
-                sh 'pip --version || pip3 --version'
-                sh 'ls -l'
-            }
-        }
-
-        stage('Setup') {
-            steps {
-                sh '''
-                    python3 -m pip install --upgrade pip
-                    pip3 install -r requirements.txt
-                '''
+                sh 'pip3 --version'
             }
         }
 
         stage('Lint') {
             steps {
-                sh 'flake8 app/ tests/ || true'  // allow lint to fail without breaking pipeline
+                sh 'flake8 .'
             }
         }
 
         stage('Test') {
             steps {
-                sh '''
-                    pytest --cov=app tests/ --junitxml=pytest-results.xml
-                '''
-            }
-            post {
-                always {
-                    junit 'pytest-results.xml'
-                }
+                sh 'pytest'
             }
         }
 
         stage('Build') {
             steps {
-                sh '''
-                    pip3 install wheel
-                    python3 setup.py bdist_wheel
-                '''
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'dist/*.whl', fingerprint: true
-                }
+                echo 'Build step - Add packaging or distribution logic here if needed'
             }
         }
 
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging environment...'
-                sh 'mkdir -p staging && cp dist/*.whl staging/'
+                echo 'Deploy step - Add your deployment script here'
             }
         }
     }
