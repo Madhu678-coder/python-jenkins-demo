@@ -13,6 +13,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from Git repository
+                checkout scm
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
