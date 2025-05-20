@@ -1,5 +1,17 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.9-slim'
+        }
+    }
+
+    stages {
+        stage('Environment Check') {
+            steps {
+                sh 'which python3'
+                sh 'python3 --version'
+            }
+        }
 
     stages {
         stage('Checkout') {
