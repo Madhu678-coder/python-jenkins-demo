@@ -1,8 +1,13 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:20.10.7'  // Use a Docker image with Docker CLI
+            args '-v /var/run/docker.sock:/var/run/docker.sock'  // Mount Docker socket
+        }
+    }
 
     environment {
-        DOCKERHUB_USER = 'lithinvarma'
+        DOCKERHUB_USER = 'yourdockerhubusername'
         IMAGE_NAME = 'greet-app'
         IMAGE_TAG = 'latest'
     }
@@ -26,13 +31,6 @@ pipeline {
                         docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
                     '''
                 }
-            }
-        }
-
-        stage('Lint') {
-            steps {
-                echo 'Linting...'
-                // Add linter command here if needed, e.g. flake8
             }
         }
 
