@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_USER = 'yourdockerhubusername'
+        DOCKERHUB_USER = 'lithinvarma'
         IMAGE_NAME = 'greet-app'
         IMAGE_TAG = 'latest'
     }
